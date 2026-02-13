@@ -1,9 +1,30 @@
 import kaplay from "kaplay";
-import "kaplay/global"; // comment if you want to use the k. prefix
+import "kaplay/global";
 
 const FLOOR_HEIGHT = 600;
 const JUMP_FORCE = 800;
 const SPEED = 480;
+const GRAVITY = 2000;
+// Speeds
+const backgroundSpeed = 50;
+const cloudSpeed = 40;
+const platformSpeed = 100;
+// Assets positioning
+// Background
+const bgPieceWidth = 765;
+const yPositionBackground = -18;
+// clouds
+const cloudWidth = 500;
+const yPositionCloud = 150;
+const yPositionCloud2 = 100;
+// Platform
+const platformWidth = 1172;
+const yPositionPlatform = 435;
+const platformScale = 1.2;
+// Stitch
+const stitchStartX = 50;
+const stitchStartY = 400;
+
 
 // initialize context
 kaplay({ background: [0, 0, 0] });
@@ -29,35 +50,24 @@ loadSprite("stitch", "sprites/stitch.png", {
 
 scene("game", () => {
     // define gravity
-    setGravity(2000);
+    setGravity(GRAVITY);
 
+    // Current game speed id zero
     let gameSpeed = 100;
     loop(1, () => {
         gameSpeed += 0;
     });
 
-    const stitch = add([sprite("stitch"), pos(80, 450), area(), body(), scale(3)]);
-
-    // Speeds
-    const backgroundSpeed = 50;
-    const cloudSpeed = 40;
-    const platformSpeed = 100;
-
     // Sky
     add([sprite("sky"), pos(0, -550), opacity(0.5), scale(1.6)]);
 
     // Background
-    const bgPieceWidth = 765;
-    const yPositionBackground = -18;
     const bgPieces = [
         add([sprite("background"), pos(0, yPositionBackground), opacity(1), scale(2.5)]),
         add([sprite("background"), pos(bgPieceWidth, yPositionBackground), opacity(0.8), scale(2.5)])
     ];
 
-    // clouds
-    const cloudWidth = 500;
-    const yPositionCloud = 150;
-    const yPositionCloud2 = 100;
+    // Clouds
     const clouds = [
         add([sprite("cloud"), pos(40, yPositionCloud), scale(2)]),
         add([sprite("cloud"), pos(1000, yPositionCloud2), scale(2)]),
@@ -66,16 +76,40 @@ scene("game", () => {
         add([sprite("cloud"), pos(cloudWidth, yPositionCloud2), scale(0.6)])
     ];
 
-    // Platform
-    const platformWidth = 1172;
-    const yPositionPlatform = 435;
-    const platformScale = 1.2;
+    // Platforms
     const platforms = [
-        add([sprite("floor"), pos(0, yPositionPlatform), scale(platformScale)]),
-        add([sprite("floor"), pos(2560, yPositionPlatform), scale(platformScale)]),
+        add([sprite("floor"), pos(0, yPositionPlatform), scale(platformScale), area(), body({ isStatic: true })]),
+        add([sprite("floor"), pos(2560, yPositionPlatform), scale(platformScale), area(), body({ isStatic: true })]),
     ];
 
+    // Stitch
+    const stitch = add([
+        sprite("stitch"), 
+        pos(stitchStartX, stitchStartY), 
+        anchor("bot"), // Anchor at bottom so feet touch the ground
+        area(), 
+        body(), 
+        scale(1), 
+        z(100)
+    ]);
+    stitch.play("run");
+
+    // Jump function
+    function jump() {
+        if (stitch.isGrounded()) {
+            stitch.jump(JUMP_FORCE);
+        }
+    }
+
+    // Jump when user presses space or clicks
+    onKeyPress("space", jump);
+    onMousePress(jump);
+
+    // UI logic
     onUpdate(() => {
+        // Stitch at fixed x
+        stitch.pos.x = stitchStartX;
+
         // Background
         if (bgPieces[1].pos.x < 0) {
             bgPieces[0].moveTo(bgPieces[1].pos.x + bgPieceWidth * 2, yPositionBackground);
@@ -87,7 +121,7 @@ scene("game", () => {
         bgPieces[0].move(-backgroundSpeed, 0);
         bgPieces[1].moveTo(bgPieces[0].pos.x + bgPieceWidth * 2, yPositionBackground);
 
-        // Clouds - move all clouds
+        // Move all clouds
         for (const cloud of clouds) {
             cloud.move(-cloudSpeed, 0);
         }
@@ -117,8 +151,6 @@ scene("game", () => {
         platforms[0].move(-platformSpeed, 0);
         platforms[1].moveTo(platforms[0].pos.x + platformWidth, platforms[0].pos.y);
     });
-
-    stitch.play("run");
 
     // add a game object to screen
     // const player = add([
