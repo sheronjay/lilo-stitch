@@ -22,18 +22,22 @@ scene("game", () => {
         gameSpeed += 0;
     });
 
+    // Speeds
+    const backgroundSpeed = 50;
+    const platformSpeed = 100;
+
     // Background
     const bgPieceWidth = 765;
-    const yPositionBackground = 20;
+    const yPositionBackground = -18;
     const bgPieces = [
         add([sprite("background"), pos(0, yPositionBackground), opacity(0.8), scale(2.5)]),
         add([sprite("background"), pos(bgPieceWidth, yPositionBackground), opacity(0.8), scale(2.5)])
     ];
 
     // Platform
-    const platformWidth = 890;
-    const yPositionPlatform = 450;
-    const platformScale = 0.6;
+    const platformWidth = 1172;
+    const yPositionPlatform = 435;
+    const platformScale = 1.2;
     const platforms = [
         add([sprite("floor"), pos(0, yPositionPlatform), scale(platformScale)]),
         add([sprite("floor"), pos(2560, yPositionPlatform), scale(platformScale)]),
@@ -48,7 +52,7 @@ scene("game", () => {
             if (frontBgPiece) bgPieces.push(frontBgPiece);
         }
 
-        bgPieces[0].move(-100, 0);
+        bgPieces[0].move(-backgroundSpeed, 0);
         bgPieces[1].moveTo(bgPieces[0].pos.x + bgPieceWidth * 2, yPositionBackground);
 
         // Platform
@@ -61,7 +65,7 @@ scene("game", () => {
             if (frontPlatform) platforms.push(frontPlatform);
         }
 
-        platforms[0].move(-gameSpeed, 0);
+        platforms[0].move(-platformSpeed, 0);
         platforms[1].moveTo(platforms[0].pos.x + platformWidth, platforms[0].pos.y);
     });
 
