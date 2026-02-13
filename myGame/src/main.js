@@ -15,6 +15,18 @@ loadSprite("background", "sprites/background.png");
 loadSprite("sky", "sprites/sky.jpeg");
 loadSprite("cloud", "sprites/cloud1.png");
 
+loadSprite("stitch", "sprites/stitch.png", {
+    sliceX: 5,
+    sliceY: 6,
+    anims: {
+        idle: { from: 0, to: 3, speed: 6, loop: true },
+        run: { from: 7, to: 12, speed: 6, loop: true },
+        jump: { from: 13, to: 15, speed: 6, loop: true },
+        happy: { from: 18, to: 20, speed: 6, loop: true },
+        fall: { from: 21, to: 22, speed: 6, loop: true }
+    }
+});
+
 scene("game", () => {
     // define gravity
     setGravity(2000);
@@ -23,6 +35,8 @@ scene("game", () => {
     loop(1, () => {
         gameSpeed += 0;
     });
+
+    const stitch = add([sprite("stitch"), pos(80, 450), area(), body()]);
 
     // Speeds
     const backgroundSpeed = 50;
@@ -103,6 +117,8 @@ scene("game", () => {
         platforms[0].move(-platformSpeed, 0);
         platforms[1].moveTo(platforms[0].pos.x + platformWidth, platforms[0].pos.y);
     });
+
+    stitch.play("run");
 
     // add a game object to screen
     // const player = add([
