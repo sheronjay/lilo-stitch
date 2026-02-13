@@ -5,6 +5,7 @@ const FLOOR_HEIGHT = 600;
 const JUMP_FORCE = 800;
 const SPEED = 480;
 const GRAVITY = 2000;
+const LENGTH = 10000;
 // Speeds
 const backgroundSpeed = 50;
 const cloudSpeed = 40;
@@ -28,6 +29,7 @@ const yPositionCollider = 810;
 const stitchStartX = 200;
 const stitchStartY = 600;
 
+const Obstacles = ["alien", "box", "fire", "mine", "tree", "warning"];
 
 // initialize context
 kaplay({ background: [0, 0, 0] });
@@ -38,7 +40,14 @@ loadSprite("floor", "sprites/floor.png");
 loadSprite("background", "sprites/background.png");
 loadSprite("sky", "sprites/sky.jpeg");
 loadSprite("cloud", "sprites/cloud1.png");
-
+// Obstacles
+loadSprite("alien", "sprites/alien.png");
+loadSprite("box", "sprites/box.png");
+loadSprite("fire", "sprites/fire.png");
+loadSprite("mine", "sprites/mine.png");
+loadSprite("tree", "sprites/tree.png");
+loadSprite("warning", "sprites/warning.png");
+// Stitch
 loadSprite("stitch", "sprites/stitch.png", {
     sliceX: 6,
     sliceY: 5,
@@ -60,6 +69,10 @@ scene("game", () => {
     loop(1, () => {
         gameSpeed += 0;
     });
+
+    // Track distance traveled
+    let distanceTraveled = 0;
+    let nextObstacleDistance = 0; // First obstacle spawn distance
 
     // Sky
     add([sprite("sky"), pos(0, -550), opacity(0.5), scale(1.6)]);
@@ -101,6 +114,39 @@ scene("game", () => {
     ]);
     stitch.play("run");
 
+    // Spawn obstacles based on distance
+    function spawnObstacle() {
+        // win condition
+        if (distanceTraveled >= LENGTH) {
+            stitch.play("happy");
+            wait(2, () => go("lose", Math.floor(distanceTraveled)));
+            return;
+        }
+
+        const obstacle = add([
+            sprite(choose(Obstacles)),
+            pos(width(), 430),
+            anchor("bot"),
+            area(),
+            body({ isStatic: true }),
+            move(LEFT, platformSpeed),
+            "obstacle",
+            z(4)
+        ]);
+
+        // Remove obstacle when it goes off screen
+        obstacle.onUpdate(() => {
+            if (obstacle.pos.x < -100) {
+                destroy(obstacle);
+            }
+        });
+    }
+
+    // Collision detection
+    stitch.onCollide("obstacle", () => {
+        go("lose", 0);
+    });
+
     // Jump function
     function jump() {
         if (stitch.isGrounded()) {
@@ -115,6 +161,16 @@ scene("game", () => {
 
     // UI logic
     onUpdate(() => {
+        // Track distance traveled
+        distanceTraveled += platformSpeed * dt();
+
+        // Spawn obstacle when reaching next spawn distance
+        if (distanceTraveled >= nextObstacleDistance && distanceTraveled < LENGTH) {
+            spawnObstacle();
+            // Set next obstacle distance with minimum 150px gap + random extra
+            nextObstacleDistance = distanceTraveled + 250 + rand(100, 300);
+        }
+
         // Stitch at fixed x
         stitch.pos.x = stitchStartX;
 
