@@ -40,7 +40,7 @@ git pull origin main || {
 
 # Stop existing containers
 echo -e "${GREEN}[2/5] Stopping existing containers...${NC}"
-docker-compose down || true
+docker-compose --env-file .env.production down || true
 
 # Build new images
 echo -e "${GREEN}[3/5] Building Docker images...${NC}"
@@ -57,7 +57,7 @@ sleep 10
 # Check container status
 echo ""
 echo "Container Status:"
-docker-compose ps
+docker-compose --env-file .env.production ps
 
 # Test services
 echo ""
