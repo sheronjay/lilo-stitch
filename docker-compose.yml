@@ -68,6 +68,9 @@ services:
       context: ./myGame
       dockerfile: Dockerfile
     container_name: lilo-stitch-game
+    environment:
+      BACKEND_URL: ${BACKEND_URL}
+      GAME_URL: ${GAME_URL}
     ports:
       - "8080:80"
     networks:
