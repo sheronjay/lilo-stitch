@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share Your Message - Lilo & Stitch</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Press+Start+2P&family=VT323&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Share Your Message</h1>
+            <p class="subtitle">Create a special message and share it through Lilo & Stitch's adventure!</p>
+        </div>
+
+        <div class="form-wrapper" id="messageForm">
+            <textarea id="messageInput" placeholder="Write your heartfelt message here..." rows="8"></textarea>
+
+            <button id="createBtn" class="btn-primary">
+
+            </button>
+        </div>
+
+        <div class="card result-card" id="resultCard" style="display: none;">
+            <h2>Your Link is Ready!</h2>
+            <p class="result-text">Share this link!</p>
+
+            <input type="text" id="shareableLink" readonly>
+            <button id="copyBtn" class="btn-copy"></button>
+
+            <button id="createAnotherBtn" class="btn-secondary"></button>
+            
+        </div>
+
+        <div class="loading" id="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Creating your special link...</p>
+        </div>
+
+        <div class="error-message" id="errorMessage" style="display: none;">
+            <span class="error-icon">⚠️</span>
+            <span id="errorText"></span>
+        </div>
+
+        <script src="env.js?v=1"></script>
+        <script src="script.js?v=1"></script>
+</body>
+
+</html>
