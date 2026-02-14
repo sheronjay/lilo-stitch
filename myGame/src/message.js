@@ -6,10 +6,25 @@ const API_URL = window.env?.API_URL || 'http://localhost:3002';
 
 // CRITICAL: Capture the ID immediately when the module loads, before any redirects!
 const capturedMessageId = (() => {
+    // Try to get ID from URL first
     const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get('id');
-    console.log('🔍 Captured message ID at module load time:', id);
+    let id = urlParams.get('id');
+    
+    // If ID found in URL, save it to sessionStorage for persistence
+    if (id) {
+        console.log('🔍 Message ID found in URL:', id);
+        sessionStorage.setItem('messageId', id);
+    } else {
+        // If not in URL, try to retrieve from sessionStorage (in case of redirect)
+        id = sessionStorage.getItem('messageId');
+        if (id) {
+            console.log('🔍 Message ID retrieved from sessionStorage:', id);
+        }
+    }
+    
     console.log('🔍 Full URL at module load:', window.location.href);
+    console.log('🔍 Final captured ID:', id);
+    
     return id;
 })();
 
