@@ -1,9 +1,11 @@
 #!/bin/sh
 
 # Create env.js with environment variables
-cat <<EOF > /usr/share/nginx/html/env.js
+cat > /usr/share/nginx/html/env.js << 'EOF_MARKER'
 window.env = {
-  # Use environment variables if available, otherwise fallback to defaults
+EOF_MARKER
+
+cat >> /usr/share/nginx/html/env.js << EOF
   API_URL: "${BACKEND_URL:-http://localhost:3002}",
   GAME_URL: "${GAME_URL:-http://localhost:8080}"
 };
