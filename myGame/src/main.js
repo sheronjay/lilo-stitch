@@ -220,13 +220,21 @@ scene("game", () => {
             body({ isStatic: true }),
             move(LEFT, platformSpeed),
             "obstacle",
-            z(4)
+            z(4),
+            scale(2)
         ]);
 
-        // Remove obstacle when it goes off screen
+        // Heartbeat effect for obstacles
         obstacle.onUpdate(() => {
+            // Remove obstacle when it goes off screen
             if (obstacle.pos.x < -100) {
                 destroy(obstacle);
+            } else {
+                // Heartbeat scaling effect
+                const scaleBase = 1;
+                const scaleVar = 0.05;
+                const scaleVal = scaleBase + Math.sin(time() * 3) * scaleVar;
+                obstacle.scale = vec2(scaleVal);
             }
         });
     }
