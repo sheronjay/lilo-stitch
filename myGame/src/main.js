@@ -7,7 +7,7 @@ import { createMessageOverlay, removeMessageOverlay } from "./messageOverlay.js"
 let message = "Loading message...";
 
 const FLOOR_HEIGHT = 600;
-const JUMP_FORCE = 900;
+const JUMP_FORCE = 930;
 const SPEED = 480;
 const GRAVITY = 1500;
 const LENGTH = 5500;
@@ -126,6 +126,16 @@ scene("start", () => {
 
     // Make button clickable
     startButton.onClick(() => {
+        // Load message when starting the game
+        console.log("Start button clicked, loading message...");
+        loadMessage().then(msg => {
+            message = msg;
+            console.log("Message loaded on button click:", message);
+        }).catch(err => {
+            console.error("Failed to load message on button click:", err);
+            message = "Message not found. Please check your link.";
+        });
+        
         go("game");
     });
 
@@ -212,6 +222,7 @@ scene("game", () => {
 
     // Spawn obstacles based on distance
     function spawnObstacle() {
+        const initialScale = 1.3; // Set your desired base scale here
         const obstacle = add([
             sprite(choose(Obstacles)),
             pos(width(), 790),
@@ -221,7 +232,7 @@ scene("game", () => {
             move(LEFT, platformSpeed),
             "obstacle",
             z(4),
-            scale(2)
+            scale(initialScale)
         ]);
 
         // Heartbeat effect for obstacles
@@ -230,9 +241,9 @@ scene("game", () => {
             if (obstacle.pos.x < -100) {
                 destroy(obstacle);
             } else {
-                // Heartbeat scaling effect
-                const scaleBase = 1;
-                const scaleVar = 0.05;
+                // Heartbeat scaling effect - uses the initial scale as base
+                const scaleBase = initialScale;
+                const scaleVar = 0.1;
                 const scaleVal = scaleBase + Math.sin(time() * 3) * scaleVar;
                 obstacle.scale = vec2(scaleVal);
             }
