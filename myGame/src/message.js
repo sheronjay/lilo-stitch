@@ -13,14 +13,18 @@ function getUrlParameter(name) {
 // Function to fetch message from API
 async function fetchMessage(uuid) {
     try {
+        console.log(`Fetching message from: ${API_URL}/api/messages/${uuid}`);
         const response = await fetch(`${API_URL}/api/messages/${uuid}`);
 
+        console.log('Response status:', response.status);
+        
         if (!response.ok) {
             console.warn('Failed to fetch message, using default');
             return defaultMessage;
         }
 
         const data = await response.json();
+        console.log('Received data:', data);
         return data.data.message;
     } catch (error) {
         console.error('Error fetching message:', error);
@@ -28,13 +32,16 @@ async function fetchMessage(uuid) {
     }
 }
 
-// Load message based on URL parameter or use default
-let message = defaultMessage;
-
-const messageId = getUrlParameter('id');
-if (messageId) {
-    // Fetch message asynchronously
-    message = await fetchMessage(messageId);
+// Export a function that loads the message
+export async function loadMessage() {
+    const messageId = getUrlParameter('id');
+    if (messageId) {
+        console.log('Message ID found:', messageId);
+        return await fetchMessage(messageId);
+    }
+    console.log('No message ID found, using default');
+    return defaultMessage;
 }
 
-export { message };
+// For backwards compatibility, export default message
+export let message = defaultMessage;

@@ -7,7 +7,11 @@ const app = express();
 const PORT = process.env.PORT || 3002;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: '*', // Allow all origins for development
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type']
+}));
 app.use(express.json());
 
 // Database configuration
@@ -73,6 +77,8 @@ app.post('/api/messages', async (req, res) => {
 app.get('/api/messages/:uuid', async (req, res) => {
     try {
         const { uuid } = req.params;
+        
+        console.log(`Fetching message for UUID: ${uuid}`);
 
         if (!uuid) {
             return res.status(400).json({ error: 'UUID is required' });
@@ -81,9 +87,13 @@ app.get('/api/messages/:uuid', async (req, res) => {
         const query = 'SELECT uuid, message, created_at FROM messages WHERE uuid = ?';
         const [rows] = await pool.execute(query, [uuid]);
 
+        console.log(`Query result: ${rows.length} rows found`);
+
         if (rows.length === 0) {
             return res.status(404).json({ error: 'Message not found' });
         }
+
+        console.log(`Returning message: ${rows[0].message.substring(0, 50)}...`);
 
         res.json({
             success: true,

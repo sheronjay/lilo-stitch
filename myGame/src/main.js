@@ -1,7 +1,17 @@
 import kaplay from "kaplay";
 import "kaplay/global";
-import { message } from "./message.js";
+import { loadMessage } from "./message.js";
 import { createMessageOverlay, removeMessageOverlay } from "./messageOverlay.js";
+
+// Load message at startup
+let message = "Loading message...";
+loadMessage().then(msg => {
+    message = msg;
+    console.log("Message loaded:", message);
+}).catch(err => {
+    console.error("Failed to load message:", err);
+    message = "Message not found. Please check your link.";
+});
 
 const FLOOR_HEIGHT = 600;
 const JUMP_FORCE = 880;
