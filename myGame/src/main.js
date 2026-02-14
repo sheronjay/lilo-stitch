@@ -7,7 +7,7 @@ const FLOOR_HEIGHT = 600;
 const JUMP_FORCE = 860;
 const SPEED = 480;
 const GRAVITY = 1500;
-const LENGTH = 10000;
+const LENGTH = 5000;
 const MIN_DIST_OBSTACLE = 400;
 let STITCH_AT_CENTER = 0;
 let LENGTH_COMPLETED = false;
@@ -245,8 +245,10 @@ scene("game", () => {
 
     // UI logic
     onUpdate(() => {
-        // Track distance traveled
-        distanceTraveled += platformSpeed * dt();
+        // Track distance traveled (only if game is still running)
+        if (!(stitch.atCenter && lilo.atCenter)) {
+            distanceTraveled += platformSpeed * dt();
+        }
 
         // Update score label
         scoreLabel.text = `Score: ${Math.floor(distanceTraveled)}m`;
