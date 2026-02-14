@@ -5,8 +5,10 @@ const FLOOR_HEIGHT = 600;
 const JUMP_FORCE = 1000;
 const SPEED = 480;
 const GRAVITY = 1500;
-const LENGTH = 4500;
+const LENGTH = 2000;
 const MIN_DIST_OBSTACLE = 400;
+let STITCH_AT_CENTER = 0;
+let LENGTH_COMPLETED = false;
 // Speeds
 const backgroundSpeed = 50;
 const cloudSpeed = 40;
@@ -60,7 +62,18 @@ loadSprite("stitch", "sprites/stitch.png", {
         run: { from: 6, to: 11, speed: 8, loop: true },
         jump: { from: 12, to: 14, speed: 6, loop: true },
         happy: { from: 18, to: 20, speed: 6, loop: true },
-        fall: { from: 24, to: 25, speed: 6, loop: true }
+        fall: { from: 24, to: 25, speed: 6, loop: true },
+        still: { from: 0, to: 0, speed: 6, loop: true }
+    }
+});
+// Lilo
+loadSprite("lilo", "sprites/lilo.png", {
+    sliceX: 5,
+    sliceY: 4,
+    anims: {
+        idle: { from: 12, to: 12, speed: 6, loop: true },
+        run: { from: 0, to: 11, speed: 8, loop: true },
+        happy: { from: 13, to: 18, speed: 6, loop: true },
     }
 });
 
@@ -118,20 +131,26 @@ scene("game", () => {
         }),
         body(), 
         scale(1), 
-        z(5)
+        z(5),
+        { runningToMiddle: false, atCenter: false }
     ]);
     stitch.play("run");
 
+    // Lilo - starts off screen
+    const lilo = add([
+        sprite("lilo"),
+        pos(width() + 100, 800), // Start off screen to the right
+        anchor("bot"),
+        area({
+            shape: new Rect(vec2(10, 0), 60, 200)
+        }),
+        scale(1),
+        z(5),
+        { runningToMiddle: false, atCenter: false },
+    ]);
+
     // Spawn obstacles based on distance
     function spawnObstacle() {
-        // win condition
-        if (distanceTraveled >= LENGTH && !gameComplete) {
-            gameComplete = true;
-            stitch.play("happy");
-            wait(2, () => go("win", Math.floor(distanceTraveled)));
-            return;
-        }
-
         const obstacle = add([
             sprite(choose(Obstacles)),
             pos(width(), 790),
@@ -169,157 +188,217 @@ scene("game", () => {
     onKeyPress("space", jump);
     onMousePress(jump);
 
+    function showSweetPopup(message) {
+    const popup = add([
+        rect(700, 300, { radius: 20 }), // rounded corners, taller for button
+        pos(center()),
+        anchor("center"),
+        color(255, 182, 193), // soft pink/coral to match tropical theme
+        opacity(0.95),
+        z(1000),
+        fixed(),
+    ]);
+
+    const shadow = add([
+        rect(700, 300, { radius: 20 }),
+        pos(center().add(8, 8)),
+        anchor("center"),
+        color(0, 0, 0),
+        opacity(0.3),
+        z(999),
+        fixed(),
+    ]);
+
+    const popupText = add([
+        text(message, {
+            size: 42,
+            width: 600,
+            align: "center"
+        }),
+        pos(center().sub(0, 40)),
+        anchor("center"),
+        color(139, 69, 19), // warm brown text for better readability
+        z(1001),
+        fixed(),
+    ]);
+
+    // Button background
+    const button = add([
+        rect(280, 60, { radius: 10 }),
+        pos(center().add(0, 80)),
+        anchor("center"),
+        color(255, 140, 105), // darker coral for button
+        area(),
+        z(1001),
+        fixed(),
+        "letterButton"
+    ]);
+
+    // Button text
+    const buttonText = add([
+        text("Open the Letter", {
+            size: 28,
+        }),
+        pos(center().add(0, 80)),
+        anchor("center"),
+        color(255, 255, 255),
+        z(1002),
+        fixed(),
+    ]);
+
+    // Button hover effect
+    button.onHoverUpdate(() => {
+        button.color = rgb(255, 120, 85);
+    });
+
+    button.onHoverEnd(() => {
+        button.color = rgb(255, 140, 105);
+    });
+
+    // Button click handler
+    button.onClick(() => {
+        // Destroy popup elements
+        destroy(popup);
+        destroy(shadow);
+        destroy(popupText);
+        destroy(button);
+        destroy(buttonText);
+        
+        // TODO: Add your letter opening logic here
+        // For now, just transition to win scene
+        wait(1, () => go("win", Math.floor(distanceTraveled)));
+    });
+    }
+
+
     // UI logic
     onUpdate(() => {
-        // Stop everything if game is complete
-        if (gameComplete) {
-            return;
-        }
-
         // Track distance traveled
         distanceTraveled += platformSpeed * dt();
 
         // Check if LENGTH completed
-        if (distanceTraveled >= LENGTH && !gameComplete) {
-            gameComplete = true;
-            stitch.play("happy");
-            wait(2, () => go("win", Math.floor(distanceTraveled)));
-            return;
+        if (distanceTraveled >= LENGTH) {
+            if (!LENGTH_COMPLETED) {
+                LENGTH_COMPLETED = true;
+                lilo.runningToMiddle = true;
+                stitch.runningToMiddle = true;
+                lilo.play("run");
+            }
+        }
+
+        if (stitch.atCenter && lilo.atCenter) {
+                    showSweetPopup("Stitch not good with words… but Stitch write for you.");
+                    wait(3, () => {
+                        stitch.play("happy");
+                        lilo.play("happy");
+                        // wait(2, () => go("win", Math.floor(distanceTraveled)));
+                    });
+        }
+
+        // Move Stitch to middle of screen
+        if (stitch.runningToMiddle) {
+            const targetX = 600;
+            const stitchSpeed = 200;
+
+            // Move right (increase X)
+            stitch.pos.x += stitchSpeed * dt();
+
+            // Check if reached target
+            if (stitch.pos.x >= targetX) {
+                stitch.pos.x = targetX;
+                stitch.runningToMiddle = false;
+                stitch.atCenter = true;
+                stitch.play("still");
+            }
+        }
+
+        // Move Lilo manually to Stitch
+        if (lilo.runningToMiddle) {
+            const targetX = 800; // Stay next to Stitch's current position
+            const liloSpeed = 200; // pixels per second
+
+            // Move left (decrease X)
+            lilo.pos.x -= liloSpeed * dt();
+
+            // Check if reached target
+            if (lilo.pos.x <= targetX) {
+                lilo.pos.x = targetX;
+                lilo.runningToMiddle = false;
+                lilo.atCenter = true;
+                lilo.play("idle");
+                
+                // Show popup when both are at center
+                
+            }
         }
 
         // Spawn obstacle when reaching next spawn distance
-        if (distanceTraveled >= nextObstacleDistance && distanceTraveled < LENGTH - 800) {
+        if (distanceTraveled >= nextObstacleDistance && distanceTraveled < LENGTH - 1200) {
             spawnObstacle();
             // Set next obstacle distance with minimum 300px gap + random extra
             nextObstacleDistance = distanceTraveled + MIN_DIST_OBSTACLE + rand(100, 300);
         }
 
-        // Stitch at fixed x
-        stitch.pos.x = stitchStartX;
+        // Stitch at fixed x (only when not running to middle)
+        if (!LENGTH_COMPLETED) {
+            stitch.pos.x = stitchStartX;
+        }
 
         // Change animation based on state
-        if (stitch.isGrounded()) {
-            if (stitch.curAnim() !== "run") {
-                stitch.play("run");
-            }
-        } else if (stitch.vel.y > 0) {
-            // Falling
-            if (stitch.curAnim() !== "fall") {
-                stitch.play("fall");
-            }
+        if (!LENGTH_COMPLETED && !stitch.runningToMiddle) {
+            if (stitch.isGrounded()) {
+                if (stitch.curAnim() !== "run") stitch.play("run");
+            }// } else if (stitch.vel.y > 0) {
+        //     if (stitch.curAnim() !== "fall") stitch.play("fall");
+        // }
         }
 
         // Background
-        if (bgPieces[1].pos.x < 0) {
+        if (bgPieces[1].pos.x < 0 && !LENGTH_COMPLETED) {
             bgPieces[0].moveTo(bgPieces[1].pos.x + bgPieceWidth * 2, yPositionBackground);
             const frontBgPiece = bgPieces.shift();
             // so typescript shuts up
             if (frontBgPiece) bgPieces.push(frontBgPiece);
         }
 
-        bgPieces[0].move(-backgroundSpeed, 0);
-        bgPieces[1].moveTo(bgPieces[0].pos.x + bgPieceWidth * 2, yPositionBackground);
+        if (!LENGTH_COMPLETED) {
+            bgPieces[0].move(-backgroundSpeed, 0);
+            bgPieces[1].moveTo(bgPieces[0].pos.x + bgPieceWidth * 2, yPositionBackground);
 
-        // Move all clouds
-        for (const cloud of clouds) {
-            cloud.move(-cloudSpeed, 0);
-        }
+            // Move all clouds
+            if (!LENGTH_COMPLETED) {
+                for (const cloud of clouds) {
+                    cloud.move(-cloudSpeed, 0);
+                }
+            }
 
-        // Wrap around when the first cloud goes off screen
-        if (clouds[0].pos.x < -cloudWidth) {
-            const frontCloud = clouds.shift();
-            if (frontCloud) {
-                // Position at the end with random Y and scale
-                const lastCloud = clouds[clouds.length - 1];
-                frontCloud.moveTo(lastCloud.pos.x + rand(400, 600), rand(-100, 250));
-                frontCloud.scaleTo(rand(0.5, 2));
-                clouds.push(frontCloud);
+            // Wrap around when the first cloud goes off screen
+            if (clouds[0].pos.x < -cloudWidth && !LENGTH_COMPLETED) {
+                const frontCloud = clouds.shift();
+                if (frontCloud) {
+                    // Position at the end with random Y and scale
+                    const lastCloud = clouds[clouds.length - 1];
+                    frontCloud.moveTo(lastCloud.pos.x + rand(400, 600), rand(-100, 250));
+                    frontCloud.scaleTo(rand(0.5, 2));
+                    clouds.push(frontCloud);
+                }
+            }
+
+            // Platform
+            if (platforms[1].pos.x < 0 && !LENGTH_COMPLETED) {
+                platforms[0].moveTo(
+                    platforms[1].pos.x + platformWidth,
+                    platforms[1].pos.y
+                );
+                const frontPlatform = platforms.shift();
+                if (frontPlatform) platforms.push(frontPlatform);
+            }
+            if (!LENGTH_COMPLETED) {
+                platforms[0].move(-platformSpeed, 0);
+                platforms[1].moveTo(platforms[0].pos.x + platformWidth, platforms[0].pos.y);
             }
         }
-
-        // Platform
-        if (platforms[1].pos.x < 0) {
-            platforms[0].moveTo(
-            platforms[1].pos.x + platformWidth,
-            platforms[1].pos.y
-        );
-            const frontPlatform = platforms.shift();
-            if (frontPlatform) platforms.push(frontPlatform);
-        }
-
-        platforms[0].move(-platformSpeed, 0);
-        platforms[1].moveTo(platforms[0].pos.x + platformWidth, platforms[0].pos.y);
     });
-
-    // add a game object to screen
-    // const player = add([
-    //     // list of components
-    //     sprite("bean"),
-    //     pos(80, 40),
-    //     area(),
-    //     body(),
-    // ]);
-
-    // floor
-    // const TILE = 1536;
-
-    // for (let x = 0; x < width(); x += TILE) {
-    //     add([
-    //         sprite("floorTile"),
-    //         pos(x, height() - FLOOR_HEIGHT),
-    //         area(),
-    //         body({ isStatic: true }),
-    //     ]);
-    // }
-
-    // function jump() {
-    //     if (player.isGrounded()) {
-    //         player.jump(JUMP_FORCE);
-    //     }
-    // }
-
-    // // jump when user press space
-    // onKeyPress("space", jump);
-    // onMousePress(jump);
-
-    // function spawnTree() {
-    //     // add tree obj
-    //     add([
-    //         rect(48, rand(32, 96)),
-    //         area(),
-    //         body({ isStatic: true }),
-    //         outline(4),
-    //         pos(width(), height() - FLOOR_HEIGHT),
-    //         anchor("botleft"),
-    //         color(255, 180, 255),
-    //         move(LEFT, SPEED),
-    //         "tree",
-    //     ]);
-    //     // wait a random amount of time to spawn next tree
-    //     wait(rand(0.5, 1.5), spawnTree);
-    // }
-
-    // // start spawning trees
-    // spawnTree();
-
-    // // lose if player collides with any game obj with tag "tree"
-    // player.onCollide("tree", () => {
-    //     // go to "lose" scene and pass the score
-    //     go("lose", score);
-    //     burp();
-    //     addKaboom(player.pos);
-    // });
-
-    // // keep track of score
-    // let score = 0;
-
-    // const scoreLabel = add([text(score), pos(24, 24)]);
-
-    // // increment score every frame
-    // onUpdate(() => {
-    //     score++;
-    //     scoreLabel.text = score;
-    // });
 });
 
 scene("win", (distance) => {
