@@ -3,15 +3,8 @@ import "kaplay/global";
 import { loadMessage } from "./message.js";
 import { createMessageOverlay, removeMessageOverlay } from "./messageOverlay.js";
 
-// Load message at startup
+// Message will be loaded after kaplay initializes
 let message = "Loading message...";
-loadMessage().then(msg => {
-    message = msg;
-    console.log("Message loaded:", message);
-}).catch(err => {
-    console.error("Failed to load message:", err);
-    message = "Message not found. Please check your link.";
-});
 
 const FLOOR_HEIGHT = 600;
 const JUMP_FORCE = 880;
@@ -52,6 +45,18 @@ const Obstacles = ["alien", "box", "fire", "mine", "tree", "warning"];
 kaplay({
     background: [0, 0, 0],
     debug: true  // Enable debug mode to see collision boxes
+});
+
+// Load message after kaplay initializes
+onLoad(() => {
+    console.log("Kaplay loaded, now loading message...");
+    loadMessage().then(msg => {
+        message = msg;
+        console.log("Message loaded successfully:", message);
+    }).catch(err => {
+        console.error("Failed to load message:", err);
+        message = "Message not found. Please check your link.";
+    });
 });
 
 // load assets
