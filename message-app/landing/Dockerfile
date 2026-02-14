@@ -8,5 +8,10 @@ COPY script.js /usr/share/nginx/html/
 # Expose port 80
 EXPOSE 80
 
-# Start nginx
+# Copy entrypoint script
+COPY entrypoint.sh /
+RUN chmod +x /entrypoint.sh
+
+# Start nginx with entrypoint
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]
