@@ -4,7 +4,7 @@ import { message, sender } from "./message.js";
 import { createMessageOverlay, removeMessageOverlay } from "./messageOverlay.js";
 
 const FLOOR_HEIGHT = 600;
-const JUMP_FORCE = 820;
+const JUMP_FORCE = 860;
 const SPEED = 480;
 const GRAVITY = 1500;
 const LENGTH = 10000;
@@ -52,6 +52,7 @@ loadSprite("sky", "sprites/sky.jpeg");
 loadSprite("cloud", "sprites/cloud1.png");
 loadSprite("popup", "sprites/popup.png");
 loadSprite("letter", "sprites/letter.png");
+loadSprite("startButton", "sprites/startButton.png");
 // Obstacles
 loadSprite("alien", "sprites/alien.png");
 loadSprite("box", "sprites/box.png");
@@ -82,6 +83,44 @@ loadSprite("lilo", "sprites/lilo.png", {
         run: { from: 0, to: 11, speed: 8, loop: true },
         happy: { from: 13, to: 18, speed: 6, loop: true },
     }
+});
+
+scene("start", () => {
+    // Sky
+    add([sprite("sky"), pos(0, -550), opacity(0.5), scale(1.6)]);
+
+    // Background
+    add([sprite("background"), pos(0, yPositionBackground), opacity(1), scale(2.5)]);
+
+    // Clouds
+    add([sprite("cloud"), pos(40, yPositionCloud), scale(2)]);
+    add([sprite("cloud"), pos(1000, yPositionCloud2), scale(2)]);
+
+    // Platform
+    add([sprite("floor"), pos(0, yPositionPlatform), scale(platformScale)]);
+
+    // Start button
+    const startButton = add([
+        sprite("startButton"),
+        pos(center()),
+        anchor("center"),
+        area(),
+        scale(0.5),
+        z(0.5)
+    ]);
+
+    // Make button clickable
+    startButton.onClick(() => {
+        go("game");
+    });
+
+    // Heartbeat effect
+    startButton.onUpdate(() => {
+        const scaleBase = 0.5;
+        const scaleVar = 0.003;
+        const scaleVal = scaleBase + Math.sin(time() * 3) * scaleVar;
+        startButton.scale = vec2(scaleVal);
+    });
 });
 
 scene("game", () => {
@@ -179,7 +218,7 @@ scene("game", () => {
 
     // Collision detection
     stitch.onCollide("obstacle", () => {
-        go("lose", 0);
+        go("lose", Math.floor(distanceTraveled));
     });
 
 
@@ -461,4 +500,4 @@ scene("lose", (score) => {
     onMousePress(() => go("game"));
 });
 
-go("game");
+go("start");
