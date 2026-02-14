@@ -1,5 +1,7 @@
 import kaplay from "kaplay";
 import "kaplay/global";
+import { message, sender } from "./message.js";
+import { createMessageOverlay, removeMessageOverlay } from "./messageOverlay.js";
 
 const FLOOR_HEIGHT = 600;
 const JUMP_FORCE = 1000;
@@ -32,6 +34,8 @@ const yPositionCollider = 810;
 const stitchStartX = 200;
 const stitchStartY = 300;
 
+
+
 const Obstacles = ["alien", "box", "fire", "mine", "tree", "warning"];
 
 // initialize context
@@ -47,6 +51,7 @@ loadSprite("background", "sprites/background.png");
 loadSprite("sky", "sprites/sky.jpeg");
 loadSprite("cloud", "sprites/cloud1.png");
 loadSprite("popup", "sprites/popup.png");
+loadSprite("letter", "sprites/letter.png");
 // Obstacles
 loadSprite("alien", "sprites/alien.png");
 loadSprite("box", "sprites/box.png");
@@ -205,7 +210,7 @@ scene("game", () => {
         }
 
         if (stitch.atCenter && lilo.atCenter && get("endPopup").length === 0) {
-            const popup = add([sprite("popup"), pos(550, 250), scale(0.5), "endPopup"]);
+            const popup = add([sprite("popup"), pos(550, 250), area(), scale(0.5), "endPopup"]);
 
             // Heartbeat effect
             popup.onUpdate(() => {
@@ -214,6 +219,63 @@ scene("game", () => {
                 const scaleVal = scaleBase + Math.sin(time() * 3) * scaleVar;
                 popup.scale = vec2(scaleVal);
             });
+
+            popup.onClick(() => {
+
+                const letterGlow1 = add([
+                    sprite("letter"),
+                    pos(center()),
+                    anchor("center"),
+                    scale(0.95),
+                    opacity(0.2),
+                    z(199)
+                ]);
+
+                const letterGlow2 = add([
+                    sprite("letter"),
+                    pos(center()),
+                    anchor("center"),
+                    scale(1.0),
+                    opacity(0.12),
+                    z(198)
+                ]);
+
+                const letterGlow3 = add([
+                    sprite("letter"),
+                    pos(center()),
+                    anchor("center"),
+                    scale(1.05),
+                    opacity(0.08),
+                    z(197)
+                ]);
+
+                const letter = add([
+                    sprite("letter"),
+                    pos(center()),
+                    anchor("center"),
+                    scale(0.9),
+                    area(),
+                    z(200)
+                ]);
+
+                // Create close handler that destroys all letter elements
+                const closeHandler = () => {
+                    destroy(letterGlow1);
+                    destroy(letterGlow2);
+                    destroy(letterGlow3);
+                    destroy(letter);
+                };
+
+                // Create and display message overlay with close handler
+                const messageOverlay = createMessageOverlay(message, sender, closeHandler);
+                document.body.appendChild(messageOverlay);
+
+                // Clean up overlay when letter is destroyed
+                letter.onDestroy(() => {
+                    removeMessageOverlay(messageOverlay);
+                });
+            });
+
 
             wait(3, () => {
                 stitch.play("happy");
