@@ -104,11 +104,8 @@ copyBtn.addEventListener('click', async () => {
 
 // Create another message
 createAnotherBtn.addEventListener('click', () => {
-    messageInput.value = '';
-    charCount.textContent = '0';
-    resultCard.style.display = 'none';
-    messageForm.style.display = 'block';
-    hideError();
+    // Redirect to root page (landing page)
+    window.location.href = '/';
 });
 
 // Error handling
