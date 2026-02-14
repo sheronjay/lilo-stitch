@@ -35,7 +35,7 @@ const stitchStartY = 300;
 const Obstacles = ["alien", "box", "fire", "mine", "tree", "warning"];
 
 // initialize context
-kaplay({ 
+kaplay({
     background: [0, 0, 0],
     debug: true  // Enable debug mode to see collision boxes
 });
@@ -46,6 +46,7 @@ loadSprite("floor", "sprites/floor.png");
 loadSprite("background", "sprites/background.png");
 loadSprite("sky", "sprites/sky.jpeg");
 loadSprite("cloud", "sprites/cloud1.png");
+loadSprite("popup", "sprites/popup.png");
 // Obstacles
 loadSprite("alien", "sprites/alien.png");
 loadSprite("box", "sprites/box.png");
@@ -90,8 +91,8 @@ scene("game", () => {
 
     // Track distance traveled
     let distanceTraveled = 0;
-    let nextObstacleDistance = 0; 
-    let gameComplete = false; 
+    let nextObstacleDistance = 0;
+    let gameComplete = false;
 
     // Sky
     add([sprite("sky"), pos(0, -550), opacity(0.5), scale(1.6)]);
@@ -123,14 +124,14 @@ scene("game", () => {
 
     // Stitch
     const stitch = add([
-        sprite("stitch"), 
-        pos(stitchStartX, stitchStartY), 
+        sprite("stitch"),
+        pos(stitchStartX, stitchStartY),
         anchor("bot"), // Anchor at bottom so feet touch the ground
         area({
-        shape: new Rect(vec2(10, 0), 60, 200)
+            shape: new Rect(vec2(10, 0), 60, 200)
         }),
-        body(), 
-        scale(1), 
+        body(),
+        scale(1),
         z(5),
         { runningToMiddle: false, atCenter: false }
     ]);
@@ -174,7 +175,7 @@ scene("game", () => {
     stitch.onCollide("obstacle", () => {
         go("lose", 0);
     });
-    
+
 
     // Jump function
     function jump() {
@@ -187,89 +188,6 @@ scene("game", () => {
     // Jump when user presses space or clicks
     onKeyPress("space", jump);
     onMousePress(jump);
-
-    function showSweetPopup(message) {
-    const popup = add([
-        rect(700, 300, { radius: 20 }), // rounded corners, taller for button
-        pos(center()),
-        anchor("center"),
-        color(255, 182, 193), // soft pink/coral to match tropical theme
-        opacity(0.95),
-        z(1000),
-        fixed(),
-    ]);
-
-    const shadow = add([
-        rect(700, 300, { radius: 20 }),
-        pos(center().add(8, 8)),
-        anchor("center"),
-        color(0, 0, 0),
-        opacity(0.3),
-        z(999),
-        fixed(),
-    ]);
-
-    const popupText = add([
-        text(message, {
-            size: 42,
-            width: 600,
-            align: "center"
-        }),
-        pos(center().sub(0, 40)),
-        anchor("center"),
-        color(139, 69, 19), // warm brown text for better readability
-        z(1001),
-        fixed(),
-    ]);
-
-    // Button background
-    const button = add([
-        rect(280, 60, { radius: 10 }),
-        pos(center().add(0, 80)),
-        anchor("center"),
-        color(255, 140, 105), // darker coral for button
-        area(),
-        z(1001),
-        fixed(),
-        "letterButton"
-    ]);
-
-    // Button text
-    const buttonText = add([
-        text("Open the Letter", {
-            size: 28,
-        }),
-        pos(center().add(0, 80)),
-        anchor("center"),
-        color(255, 255, 255),
-        z(1002),
-        fixed(),
-    ]);
-
-    // Button hover effect
-    button.onHoverUpdate(() => {
-        button.color = rgb(255, 120, 85);
-    });
-
-    button.onHoverEnd(() => {
-        button.color = rgb(255, 140, 105);
-    });
-
-    // Button click handler
-    button.onClick(() => {
-        // Destroy popup elements
-        destroy(popup);
-        destroy(shadow);
-        destroy(popupText);
-        destroy(button);
-        destroy(buttonText);
-        
-        // TODO: Add your letter opening logic here
-        // For now, just transition to win scene
-        wait(1, () => go("win", Math.floor(distanceTraveled)));
-    });
-    }
-
 
     // UI logic
     onUpdate(() => {
@@ -286,13 +204,22 @@ scene("game", () => {
             }
         }
 
-        if (stitch.atCenter && lilo.atCenter) {
-                    showSweetPopup("Stitch not good with words… but Stitch write for you.");
-                    wait(3, () => {
-                        stitch.play("happy");
-                        lilo.play("happy");
-                        // wait(2, () => go("win", Math.floor(distanceTraveled)));
-                    });
+        if (stitch.atCenter && lilo.atCenter && get("endPopup").length === 0) {
+            const popup = add([sprite("popup"), pos(550, 250), scale(0.5), "endPopup"]);
+
+            // Heartbeat effect
+            popup.onUpdate(() => {
+                const scaleBase = 0.5;
+                const scaleVar = 0.003;
+                const scaleVal = scaleBase + Math.sin(time() * 3) * scaleVar;
+                popup.scale = vec2(scaleVal);
+            });
+
+            wait(3, () => {
+                stitch.play("happy");
+                lilo.play("happy");
+                // wait(2, () => go("win", Math.floor(distanceTraveled)));
+            });
         }
 
         // Move Stitch to middle of screen
@@ -326,9 +253,9 @@ scene("game", () => {
                 lilo.runningToMiddle = false;
                 lilo.atCenter = true;
                 lilo.play("idle");
-                
+
                 // Show popup when both are at center
-                
+
             }
         }
 
@@ -349,8 +276,8 @@ scene("game", () => {
             if (stitch.isGrounded()) {
                 if (stitch.curAnim() !== "run") stitch.play("run");
             }// } else if (stitch.vel.y > 0) {
-        //     if (stitch.curAnim() !== "fall") stitch.play("fall");
-        // }
+            //     if (stitch.curAnim() !== "fall") stitch.play("fall");
+            // }
         }
 
         // Background
