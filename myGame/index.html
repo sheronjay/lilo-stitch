@@ -13,14 +13,14 @@
     <script>
         (function() {
             const urlParams = new URLSearchParams(window.location.search);
-            const id = urlParams.get('id');
-            if (id) {
-                console.log('🚀 [EARLY CAPTURE] Message ID saved:', id);
-                sessionStorage.setItem('messageId', id);
-            } else {
-                console.log('🚀 [EARLY CAPTURE] No message ID in URL');
+            let id = urlParams.get('id');
+            if (!id && window.location.hash) {
+                const hash = window.location.hash.startsWith('#')
+                    ? window.location.hash.substring(1)
+                    : window.location.hash;
+                const hashParams = new URLSearchParams(hash);
+                id = hashParams.get('id');
             }
-            console.log('🚀 [EARLY CAPTURE] URL:', window.location.href);
         })();
     </script>
     

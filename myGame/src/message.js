@@ -9,17 +9,14 @@ const capturedMessageId = (() => {
     // Try to get ID from URL first
     const urlParams = new URLSearchParams(window.location.search);
     let id = urlParams.get('id');
-    
-    // If ID found in URL, save it to sessionStorage for persistence
-    if (id) {
-        console.log('🔍 Message ID found in URL:', id);
-        sessionStorage.setItem('messageId', id);
-    } else {
-        // If not in URL, try to retrieve from sessionStorage (in case of redirect)
-        id = sessionStorage.getItem('messageId');
-        if (id) {
-            console.log('🔍 Message ID retrieved from sessionStorage:', id);
-        }
+
+    // If not found in URL, check the hash
+    if (!id && window.location.hash) {
+        const hash = window.location.hash.startsWith('#')
+            ? window.location.hash.substring(1)
+            : window.location.hash;
+        const hashParams = new URLSearchParams(hash);
+        id = hashParams.get('id');
     }
     
     console.log('🔍 Full URL at module load:', window.location.href);

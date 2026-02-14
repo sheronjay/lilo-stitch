@@ -59,7 +59,7 @@ createBtn.addEventListener('click', async () => {
         const data = await response.json();
 
         // Generate the game URL with UUID
-        const gameLink = `${GAME_URL}?id=${data.uuid}`;
+        const gameLink = `${GAME_URL}#id=${encodeURIComponent(data.uuid)}`;
 
         // Show result
         shareableLink.value = gameLink;
