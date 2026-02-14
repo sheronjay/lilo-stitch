@@ -16,7 +16,7 @@ const GAME_HEIGHT = 900;
 const MIN_DIST_OBSTACLE = 400;
 let STITCH_AT_CENTER = 0;
 let LENGTH_COMPLETED = false;
-let themeSong = null;
+
 // Speeds
 const backgroundSpeed = 50;
 const cloudSpeed = 40;
@@ -76,7 +76,6 @@ loadSprite("cloud", "sprites/cloud1.png");
 loadSprite("popup", "sprites/popup.png");
 loadSprite("letter", "sprites/letter.png");
 loadSprite("startButton", "sprites/startButton.png");
-loadSound("themeSong", "sounds/themeSong.mp3");
 // Obstacles
 loadSprite("alien", "sprites/alien.png");
 loadSprite("box", "sprites/box.png");
@@ -109,17 +108,7 @@ loadSprite("lilo", "sprites/lilo.png", {
     }
 });
 
-function playThemeSong() {
-    if (!themeSong || themeSong.paused) {
-        themeSong = play("themeSong", {
-            loop: true,
-            volume: 0.5,
-        });
-    }
-}
-
 scene("start", () => {
-    playThemeSong();
     // Sky
     add([sprite("sky"), pos(0, -550), opacity(0.5), scale(1.6)]);
 
@@ -168,8 +157,6 @@ scene("start", () => {
 });
 
 scene("game", () => {
-    playThemeSong();
-
     // define gravity
     setGravity(GRAVITY);
 
@@ -502,8 +489,7 @@ scene("game", () => {
 });
 
 scene("win", (distance) => {
-    playThemeSong();
-    // Sky
+// Sky
     add([sprite("sky"), pos(0, -550), opacity(0.5), scale(1.6)]);
 
     // Background
@@ -532,7 +518,6 @@ scene("win", (distance) => {
 });
 
 scene("lose", (score) => {
-    playThemeSong();
     // Sky
     add([sprite("sky"), pos(0, -550), opacity(0.5), scale(1.6)]);
 
