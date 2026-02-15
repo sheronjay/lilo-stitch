@@ -33,7 +33,7 @@ This project is split into three parts:
 
 ## 🎥 Demo Video
 
-[![Watch the demo](https://img.youtube.com/vi/VIDEO_ID/maxresdefault.jpg)](https://youtube.com/watch?v=VIDEO_ID)
+[![Watch the demo](https://img.youtube.com/vi/4WQL9CAbyR4/maxresdefault.jpg)](https://www.youtube.com/watch?v=4WQL9CAbyR4)
 
 
 ## Issues, Feature Requests, and Improvements
