@@ -2,6 +2,13 @@ import express from 'express';
 import mysql from 'mysql2/promise';
 import cors from 'cors';
 import { v4 as uuidv4 } from 'uuid';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -77,7 +84,7 @@ app.post('/api/messages', async (req, res) => {
 app.get('/api/messages/:uuid', async (req, res) => {
     try {
         const { uuid } = req.params;
-        
+
         console.log(`Fetching message for UUID: ${uuid}`);
 
         if (!uuid) {
@@ -102,6 +109,41 @@ app.get('/api/messages/:uuid', async (req, res) => {
     } catch (error) {
         console.error('Error fetching message:', error);
         res.status(500).json({ error: 'Failed to fetch message' });
+    }
+});
+
+// Log a message view
+app.post('/api/messages/:uuid/view', async (req, res) => {
+    try {
+        const { uuid } = req.params;
+
+        // Get client information
+        const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+        const userAgent = req.headers['user-agent'] || 'unknown';
+        const timestamp = new Date().toISOString();
+
+        // Create log entry
+        const logEntry = {
+            uuid,
+            timestamp,
+            ip,
+            userAgent
+        };
+
+        // Define log file path
+        const logFilePath = path.join(__dirname, 'message_views.log');
+
+        // Append to log file
+        const logLine = JSON.stringify(logEntry) + '\n';
+        fs.appendFileSync(logFilePath, logLine);
+
+        console.log(`📊 Message view logged: ${uuid} from ${ip}`);
+
+        res.json({ success: true, message: 'View logged' });
+    } catch (error) {
+        console.error('Error logging view:', error);
+        // Don't fail the request if logging fails
+        res.json({ success: false, message: 'Failed to log view' });
     }
 });
 

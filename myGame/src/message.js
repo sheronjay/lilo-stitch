@@ -18,10 +18,10 @@ const capturedMessageId = (() => {
         const hashParams = new URLSearchParams(hash);
         id = hashParams.get('id');
     }
-    
+
     console.log('🔍 Full URL at module load:', window.location.href);
     console.log('🔍 Final captured ID:', id);
-    
+
     return id;
 })();
 
@@ -37,12 +37,12 @@ async function fetchMessage(uuid) {
         const fetchUrl = `${API_URL}/api/messages/${uuid}`;
         console.log(`🌐 Fetching message from: ${fetchUrl}`);
         console.log(`🌐 API_URL: ${API_URL}`);
-        
+
         const response = await fetch(fetchUrl);
 
         console.log('📡 Response status:', response.status);
         console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
-        
+
         if (!response.ok) {
             console.warn('❌ Failed to fetch message, using default. Status:', response.status);
             return defaultMessage;
@@ -50,9 +50,15 @@ async function fetchMessage(uuid) {
 
         const data = await response.json();
         console.log('✅ Received data:', data);
-        
+
         if (data && data.data && data.data.message) {
             console.log('✅ Message extracted:', data.data.message);
+
+            // Log the view asynchronously (don't wait for it)
+            logMessageView(uuid).catch(err => {
+                console.warn('⚠️ Failed to log view:', err);
+            });
+
             return data.data.message;
         } else {
             console.warn('⚠️ Unexpected data structure:', data);
@@ -64,15 +70,39 @@ async function fetchMessage(uuid) {
     }
 }
 
+// Function to log message view
+async function logMessageView(uuid) {
+    try {
+        const logUrl = `${API_URL}/api/messages/${uuid}/view`;
+        console.log(`📊 Logging view for: ${uuid}`);
+
+        const response = await fetch(logUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            console.log('✅ View logged successfully');
+        } else {
+            console.warn('⚠️ Failed to log view');
+        }
+    } catch (error) {
+        console.error('❌ Error logging view:', error);
+        // Don't throw - we don't want to break the app if logging fails
+    }
+}
+
 // Export a function that loads the message
 export async function loadMessage() {
     // Use the captured ID instead of trying to get it from current URL
     const messageId = capturedMessageId;
-    
+
     console.log('💬 loadMessage() called');
     console.log('💬 Using captured message ID:', messageId);
     console.log('💬 Current URL:', window.location.href);
-    
+
     if (messageId) {
         console.log('✅ Message ID found, fetching from API...');
         return await fetchMessage(messageId);
